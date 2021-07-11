@@ -6,16 +6,41 @@ const Show = () => {
   const { id } = useParams();
 
   const [show, setShow] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    apiGet(`/shows/${id}?embed[]=seasons&embed[]=cast`).then(results => {
-      setShow(results);
-    });
+    let isMounted = true;
+
+    apiGet(`/shows/${id}?embed[]=seasons&embed[]=cast`)
+      .then(results => {
+        if (isMounted) {
+          setShow(results);
+          setIsLoading(false);
+        }
+      })
+      .catch(err => {
+        if (isMounted) {
+          setError(err.Message);
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   console.log('show', show);
 
-  return <div>this is show page</div>;
+  if (isLoading) {
+    return <div>Date is being page</div>;
+  }
+
+  if (error) {
+    return <div>Error Ocuured:{error}</div>;
+  }
+  return <div>This is Show Page</div>;
 };
 
 export default Show;
